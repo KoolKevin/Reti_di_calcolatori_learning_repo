@@ -1,0 +1,60 @@
+------------------- ESERCITAZIONE 6 SVOLTA, ESEMPIO MOLTO SIGNIFICATIVO ----------------------
+
+Il modello per cui il registry deve stare sullo stesso host del server è molto vincolato. l'RMIRegistry è un servitore LOCALE! 
+Java introduce gli oggetti remotizzabili che chi permettono di propagare i riferimenti remoti 
+	-> ci permette di creare un registry remoto che NON deve stare sulla stessa macchina dei servitori.
+	-> è un servitore di nomi più largo 
+	-> il Registry remoto è un servitore rmi e quindi sul suo nodo è presente un RMIRegistry. L'RMIRegistry registra il servizio del registryRemoto e lo rende visibile ad entrambi
+	   i clienti e servitori.
+	   
+Oggetti remotizzabili sono oggetti di primo livello e quind, il livello RRL della jvm distingue il passaggio per riferimento di oggetti remotizzabili e il passaggio per valore di oggetti
+serializzabili.
+
+
+-------------- OSI ---------------------
+Open System Interconnection; Open system, tutti possono partecipare ad una comunicazione con chiunque altro. 
+
+OSI è uno standard di comunicazione tra sistemi aperti, che permette a sistemi qualunque di INTEROPERARE, ossia di consentire che sistemi eterogenei possano comunicare ed operare
+tra loro in modo aperto. (aperto = tutti possono partecipare alla comunicazione)
+
+OSI nasce con obiettivi di razionalizzazione per qualunque tipo di comunicazione tra sistemi diversi
+	Architetture di rete diverse proprietarie e protocolli diversi non erano in grado di interagire in modo sistematico
+OSI propone standard e schemi di progetto astratti, per razionalizzare, inquadrare e abilitare ogni possibile standard di comunicazione (e guidare le soluzioni)
+
+OSI è uno standard che definisce modelli di soluzione alla comunicazione, non protocolli.
+
+------- Livelli -------
+OSI è uno standard a livelli.
+
+ogni livello definisce:
+	-un servizio che offre al livello superiore.
+	-una implementazione del servizio o protocollo.
+	
+- Descrizione verticale del livello: definizione astratta dei servizi del livello corrente disponibile al livello immediatamente superiore. 
+  È detta anche interfaccia offerta al livello superiore. (INTERFACCIA)
+
+- Descrizione orizzontale: specifica dettagliata di come il livello implementa il servizio tramite scambio di dati ed informazioni tra le due realizzazioni dei sistemi
+  comunicanti, ossia come si realizza il servizio. (PROTOCOLLO)
+	
+IMPORTANTE non si possono saltare i livelli OSI. Tutti i livelli devono essere definiti(anche con implementazione vuota).
+
+------------------ Service Access Point -------------------
+SAP identifica il punto di accesso che un servizio OSI offre al suo livello superiore.
+
+
+---------------- Meccanismi e politiche -----------------
+Per garantire una copertura stabile della comunicazione, OSI specifica solo meccanismi di comunicazione e lascia le politiche di uso non standardizzate alla decisione locale
+
+- Differenze tra meccanismi e politiche(ricorda esempio ftp! -> meccanismi: ftp file port offset). Le politiche sfruttano i meccanismi. Se i meccanismi sono progettati bene, essi durano
+  nel tempo per tutte le politiche che li utilizzano.
+
+----------------- PRIMITIVE ------------------------
+Le entità pari cooperano tramite primitive per implementare le funzionalità del livello cui appartengono.
+
+Le primitive si dividono in 4 categorie:
+	• Request -> il service user richiede un servizio (una azione)
+	• Indication -> il service provider indica al service user che è stato richiesto un servizio (segnalazione di evento)
+	• Response -> il service user specifica la risposta alla richiesta di servizio (una azione)
+	• Confirm -> il service provider segnala la risposta alla richiesta di servizio (segnalazione di evento)
+
+

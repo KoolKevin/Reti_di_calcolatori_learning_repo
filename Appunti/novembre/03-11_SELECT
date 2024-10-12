@@ -1,0 +1,53 @@
+
+------------ OPZIONI PER LE SOCKET -----------------
+level specifica il livello del protocollo dell'opzione desiderata( es. ipv4/ipv6 ). Noi useremo sempre Socket Option Level; level=SOL_SOCKET
+
+Se setto la linger, la close diventa pesante! Nel senso che una volta invocata aspetto finchè non scade il tempo di linger, mi sincronizzo con la driver.
+
+----------------- IOCTL()/FCNTL() -------------------
+In generale le primitive in unix sono sincrone e bloccanti verso il livello del sistema operativo( verso la driver per le primitive delle socket ).
+Alcune volte però lavorare così è un po' pesante, sopratutto quando si lavora con i dispositivi/file. Per cambiare questo comportamento di default per renderlo asincrono si usano 
+le primitive sopra menzionate.
+
+NB: Noi useremo queste primitive sempre con le socket.
+
+Dato che questo tipo di codice è molto di basso livello NON è portabile. In kernel linux si usa fcntl(). 
+Essere asincroni comporta un grado di cautela maggiore. Per esempio se faccio una write finchè non mi arriva una SIGIO non posso modificare il buffer dei dati che voglio scrivere
+stessa cosa per la read(), non posso rifare una read() finchè non mi arriva il SIGIO.
+
+---------------- SOCKET NON BLOCCANTI --------------------
+Se rendiamo una socket sincrona non bloccante, ci troviamo in una situazione di uso in cui le operazioni vengono richieste e attuate, ma il processo non si sospende in attesa della
+terminazione.
+
+Nel caso di azioni di lettura ci serve a poco, poiché siamo interessati ad aspettare il dato che arriva da altri (e dobbiamo recuperare il risultato al SIGIO).
+
+Per il caso di azioni di scrittura, noi possiamo comandarle, e non aspettare il termine (uso per select)
+	• In caso di scrittura non bloccante, possiamo confidare che la operazione sia passata al livello sottostante della driver e confidiamo
+	  che abbia successo, anche se non sappiamo quando
+	• Se siamo interessati a sapere se una operazione precedente è completata prima di fare una ulteriore azione di scrittura (senza ingolfare le driver):
+	  la informazione è il completamento della azione precedente (SIGIO) catturato anche dalla select (maschera output, vedi dopo)
+
+---------------- SELECT() -------------------
+Blocca il processo in attesa di almeno un evento fra più eventi attesi possibili (range da 0 a soglia intera), anche con un intervallo di timeout definito dall’utente.
+Gli eventi corrispondono alla possibilità di fare azioni non sospensive
+
+problemi con servitori con più socket, se si fa una receive su una socket le altre devono aspettare.
+La primitiva select() permette di fare una multi-receive. Cioè permette di mettersi in attesa di dati su più socket.
+Dopo la select le primitive NON sono più bloccanti dato che la select ha gia aspettato per loro.
+
+Servitori concorrenti NON paralleli hanno il problema di rimanere in attesa su una socket quando possono arrivare dati su altre socket. 
+
+La select() mi permette di essere sicuro di non bloccarmi su primitive che in generale lo sono chiedendo al kernel.
+
+La select() è sincrona bloccante finchè non si verifica ALMENO UNO degli eventi desiderati. Se sono già presenti la select è passante.
+
+Quando conviene usare un server concorrente monoprocesso? Quando il cliente ha grossi tempi di interleaving.
+
+--------------SELECT IN SCRITTURA --------------
+Quando faccio una write in genere mi blocco sulla write e non sulla select(), di conseguenza la rendiamo asincrona e sarà il segnale SIGIO a sbloccare la select().
+Questo è il motivo per cui abbiamo bisogno di primitive asincrone.
+
+------------------------------------------------
+Anche il cliente può utilizzare la select()! In particolare quando manda richieste a più servitori, così aspetta solo per un tempo pari al tempo del servitore più lento.
+
+NB: la select serve a fare multi-receive.

@@ -1,0 +1,14 @@
+total 76
+-rw-r--r-- 1 s0000989712 domain users   831 Oct 24 15:39 FileUtility.class
+-rw-r--r-- 1 s0000989712 domain users   777 Oct 14  2016 FileUtility.java
+-rw-r--r-- 1 s0000989712 domain users  1738 Oct 24 15:39 FiltroSemplice.class
+-rw-r--r-- 1 s0000989712 domain users   851 Oct 14  2016 FiltroSemplice.java
+-rw-r--r-- 1 s0000989712 domain users  4433 Oct 24 15:39 PutFileClient.class
+-rw-r--r-- 1 s0000989712 domain users  6868 Oct 21  2016 PutFileClient.java
+-rw-r--r-- 1 s0000989712 domain users  2659 Oct 24 15:39 PutFileServerCon.class
+-rw-r--r-- 1 s0000989712 domain users  6497 Oct 21  2016 PutFileServerCon.java
+-rw-r--r-- 1 s0000989712 domain users  4567 Oct 24 15:39 PutFileServerSeq.class
+-rw-r--r-- 1 s0000989712 domain users  5978 Oct 21  2016 PutFileServerSeq.java
+-rw-r--r-- 1 s0000989712 domain users  3417 Oct 24 15:39 PutFileServerThread.class
+-rw-r--r-- 1 s0000989712 domain users     0 Oct 24 15:44 robaNelMioDirettorio
+-rw-r--r-- 1 s0000989712 domain users 11681 Oct 21  2016 saggezzabin

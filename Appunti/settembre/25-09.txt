@@ -1,0 +1,40 @@
+------- Cose utili da sapere - FILE:
+
+i file sono STREAM DI BYTE, senza limite.
+
+I file non sono serializable(cioè non trasportabili tra processori), per trasferirli da una macchina all'altra bisogna creare un programma apposta.
+I file non stanno in memoria(o meglio stanno su disco, cioè memoria secondaria), sono legati alla locazione dove il progettista li ha definiti.
+
+i file di testo ci interessano. Sono costituiti solo da caratteri stampabili, e sono file a linee(cioè con caratteri di fine linea '\n').
+
+per trasportare il CONTENUTO di un file da una macchina all'altra si trasportano blocchi di byte dandogli un nome e posizione.
+
+i file non hanno un carattere di fine file. Il file descriptor ci dice quando il file finisce restituendoci l'EOF tramite le system call.
+
+------- FILTRI:
+
+Un filtro è un programma che prende in ingresso un inputo e produce un risultato in output. 
+
+Gli input sono stream di byte. I filtri DEVONO NECESSARIAMENTE CONSUMARE TUTTO L'INGRESSO.
+
+------- INPUT/OUTPUT in C:
+
+1) primitive: read()/write()
+2) librerie:
+	-input/output a caratteri: getc()/putc()
+	-input/output a stringhe: gets()/puts()
+	-input/output con formato per tipi diversi: scanf()/printf()
+	-SCONSIGLIATE fopen()/fclose()
+
+-------- ESEMPIO FINE FILE:
+
+per gestire correttamente l'EOF si può mantenere come stato un INTERO al posto di un CHAR dato che l'EOF di solito è -1. (vedi esempio getchar()/putchar()).
+
+-------- ESEMPIO GETS()/PUTS()
+
+gets() sostituisce il fine linea con lo zero binario in modo da produrre una stringa ben fatta.
+In generale il mondo esterno ragiona in linee, mentre i programmi ragionano con zero binari.
+
+--------- SCANF() 
+
+scanf() in caso di errore di formato non sposta l'I/O pointer. Bisogna farlo a mano con getc() o altro.

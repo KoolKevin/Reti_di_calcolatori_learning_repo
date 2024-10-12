@@ -1,0 +1,62 @@
+le primitive sono un modo per descrivere i protocolli.
+
+ogni livello in genere ha una sua connect/data/disconnect(es: la s-connect è la connect del livello di sessione) 
+
+OSI offre una qualità totalmente non paragonabile alla qualità della connessione di TCP/IP.
+
+------------ OSI, Livelli bassi ---------------
+fanno cose simili: controllo di flusso, controllo di congestione, ...
+
+
+------------ OSI, Trasporto --------------
+4 primitive
+ha le primitive CONNECT/DISCONNECT
+ha la primitiva date e prevede anche l'invio di dati prioritario che chiama expedited.
+
+la connect ha tanti parametri quali la banda, la qualità, ecc. Queste informazioni le conoscono anche tutti i nodi intermedi. Ricordam in OSI tutti gli intermedi
+partecipano alla connessione.
+
+------------ OSI, Sessione ---------------
+slogan: "Il dialogo".
+
+le socket sono sopra al trasporto e quindi di livello di sessione, ma non implementano niente.
+
+Nella sessione i dialogo può:
+	-essere bidirezionale
+	-essere molteplice e strutturato in attività separate
+	-considerare le risorse impegnate
+	-avere garanzie di correttezza e affidabilita
+	
+58 primitive(bruh)
+La sessione introduce delle primitive che introducono il concetto di checkpoint. Quando si raggiunge un checkpoint nella comunicazione il mittente si ferma finchè il destinatario non
+conferma tutti i messaggi arrivati prima del checkpoint. I checkpoint sono divisi in maggiori(appena descritti) o minori(finestre).
+
+La sessione incarna anche le eccezzioni.
+
+------------ OSI, Presentazione --------------
+slogan: "La trasformazione dei dati".
+
+2 soluzioni:
+	- conosco il formato del mio ricevente, una trasformazione ma devo conoscere tutti i formati dei riceventi. Inoltre devo aggiungere un nuovo formato ogni volta che aggiungo un 
+	  ricevente.
+	- uso un formato intermedio standard. Unica soluzione che scala in internet
+	
+	parte concreta Accordo : come sono fatti i dati che scambio.
+	parte astratta Accordo: linguaggio comune che serve a negoziare l'accordo che definisce cosa verrà scambiato . 
+	
+Le socket, che non usano la presentazione, mandano solo il valore dei dati. Non ci dicono di che tipo sono e neanche la lunghezza dei dati.
+Le socket non fanno neanche accordo astratto, quando io invio una stringa mi aspetto che l'accordo sia implicito, mi aspetto di ricevere una stringa.
+
+-------------- OSI, Applicazione --------------
+quando sviluppo una applicazione, quest'ultima sta sopra il livello applicativo di OSI.
+
+
+
+
+
+
+
+
+
+
+

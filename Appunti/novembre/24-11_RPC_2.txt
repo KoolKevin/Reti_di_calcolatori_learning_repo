@@ -1,0 +1,118 @@
+---------------------- ARCHITETTURA RPC, Gestori di Trasporto ------------------------
+Una struttura dati di supporto, detta gestore di trasporto (CLIENT), viene usata nel cliente per tenere traccia e potere comunicare con i potenziali servitori.
+
+Il server usa il gestore di trasporto servitore per mantenere il collegamento RPC con i potenziali clienti, e in particolare con il servizio corrente.
+Per inoltrare la richiesta del client alla procedura corretta: il messaggio RPC contiene il numero della procedura che viene identificato nella procedura di dispatching quando attivata
+per ottenere il servizio. (ricorda la tabella del portmapper non ha il numero di procedura dentro, esso si conosce solo al momento dell'invocazione e si trova all'interno del gestore di
+trasporto [del servitore?])
+
+----------- INTERFACE DEFINITION LANGUAGE -----------------
+Per la descrizione dei dati, parte del contratto tra un cliente e un servitore, si sono definiti dei linguaggi di Interfaccia. Linguaggi special-purpose per determinare in modo 
+non ambiguo le procedure ed i dati scambiati.
+eXternal Data Representation (o XDR) è il linguaggio per le RPC di SUN.
+
+La interfaccia è costituita da procedure remote che accettano un solo un argomento ed un solo risultato
+	→ a volte necessità di definire una struttura che li raggruppa
+
+XDR definisce la firma dei metodi.
+Il parametro di ingresso e il risultato sono:
+	• Tipi atomici predefiniti
+	• Tipi standard (costruttori riconosciuti)
+	• Tipi costruiti	
+-> esempio completo di file XDR slide 39.
+
+il protocollo XDR si occupa della PRESENTAZIONE dei dati! Con delle funzioni built-in, fa marhsalling/unmarshalling quando si passano dati da una macchina ad un altra.
+NB:	-formato XDR è il formato comune standard in cui si trasformano i dati che viaggiano in rete.
+	-protocollo XDR è il protocollo che si occupa della presentazione dei dati facendo marhsalling/unmarshalling
+	
+----------------- LIVELLO BASSO, API RPC; OVERVIEW ---------------------	
+-CLIENT:
+	1)Creazione di un gestore di trasporto che utilizza una socket per accedere al meccanismo di trasporto UDP o TCP: clntudp_create() o clntcp_create()
+	2)Chiamata alla procedura remota: clnt_call()
+	3)Interpretazione degli eventuali errori: clnt_perror()
+	4)Deallocazione del gestore: clnt_destroy()
+	
+-SERVER:	
+	1)Creazione di gestore di trasporto che utilizza una socket per il meccanismo di trasporto UDP o TCP: svcudp_create() o svctcp_create()
+	2)Distruzione di eventuali precedenti registrazioni con lo stesso numero di programma e versione nella port-map: pmap_unset()
+	3)Associazione della tripla {n_prog,n_vers,protocollo} ad una procedura di dispatching che implementa i vari servizi: svc_register()
+	4)Ingresso nel Ciclo infinito di attesa del processo per il servizio della chiamata: svc_run()
+	
+--------------- CREAZIONE DI UN GESTORE DI TRASPORTO SERVER -----------------
+La registerrpc() utilizza
+– svcudp_create() per ottenere un gestore UDP (default per SUN)
+– svctcp_create() per ottenere un gestore TCP (in caso di protocollo affidabile)
+
+Il gestore di trasporto, struttura dati di supporto, è definito dal tipo SVCXPRT:
+typedef struct {
+	#ifdef KERNEL struct socket * xp_sock;
+	#else int xp_sock; /* socket associata */
+	#endif
+	u_short xp_port; /* numero di porta assoc.*/
+	
+	struct xp_ops {
+		bool_t (*xp_recv)(); /* ricezione richieste */
+		enum xprt_stat (*xp_stat)(); /* stato del trasporto */
+		bool_t (*xp_getargs)(); /* legge gli argomenti */
+		bool_t (*xp_reply)(); /* invia una risposta */
+		bool_t (*xp_freeargs)(); /* libera memoria allocata */
+		void (*xp_destroy)(); /* distrugge la struttura */
+	} * xp_ops;
+	
+	int xp_addrlen; /* lunghezza ind. remoto */
+	struct sockaddr_in xp_raddr; /* indirizzo remoto */
+	struct opaque_auth xp_verf; /* controllore risposta */
+	caddr_t xp_p1; caddr_t xp_p2; /* privato */
+} SVCXPRT;
+
+SVCXPRT è una struttura astratta che:
+	• contiene puntatori alle operazioni sui dati(puntatori a funzione)
+	• riferisce due socket e una porta (locale)
+		– una per il protocollo di trasporto del server (xp_sock)
+		– una (se richiesta in atto) a cui inviare i risultati della esecuzione remota (xp_raddr)
+		
+------------- SERVER: PROCEDURA DI DISPATCHING ---------------
+La procedura di dispatching deve essere registrata preliminarmente per essere invocata alla chiamata(è una funzione di callback) 
+	-> Una procedura di dispatching è associata ad una tripla {n_prog, n_vers, protocollo} mediante la primitiva svc_register(xprt, prognum, versnum, dispatch, protocol)
+La procedura deve sistemare i parametri e deve trovare la procedura sul server, invocarla, trattare il risultato, e consegnarlo, terminando.
+
+La procedura di dispatching contiene i riferimenti alle implementazioni dei servizi di un programma RPC 
+	→ stesso gestore e stesso protocollo di trasporto
+La procedura di dispatching seleziona il servizio da eseguire interpretando il messaggio RPC consegnato dal gestore (svc_req)
+
+void dispatch (request, xprt);
+struct svc_req *request;
+SVCXPRT *xprt;
+rq_proc(dentro request) identifica la procedura da svolgere
+rq_xprt identifica la struttura dati del gestore di trasporto, dalla quale è possibile (si veda struttura SVCXPTR):
+	– ricavare i parametri per l'esecuzione tramite svc_getargs()
+	– spedire la risposta tramite la svc_sendreply()
+	
+------------------ CLIENT: CREAZIONE DI UN GESTORE DI TRASPORTO -----------------
+Il client necessita di un gestore di trasporto per RPC.
+L'applicazione chiamante utilizza clntudp_create() per un gestore UDP
+Anche clnttcp_create() per protocollo affidabile
+La callrpc() ottiene un gestore di trasporto con clntudp_create()
+
+typedef struct {
+	AUTH *cl_auth; /* autenticazione */
+	
+	struct clnt_ops {
+		enum clnt_stat (* cl_call)(); /* chiamata di procedura remota */
+		void (* cl_abort)(); /* annullamento della chiamata */
+		void (* cl_geterr)(); /* ottiene uno codice d'errore */
+		bool_t (* cl_freeres)(); /* libera lo spazio dei risultati */
+		void (* cl_destroy)(); /* distrugge questa struttura */
+		bool_t (*cl_control)(); /* funzione controllo I/ORPC */
+	} * cl_ops;
+	
+	caddr_t cl_private; /* riempimento privato */
+} CLIENT;
+
+Creato il gestore di trasporto si raggiunge un'entità {n_prog, n_vers, protocollo} tramite il numero di porta relativo: la procedura di dispatching è già selezionata.
+La clnt_call() specifica solo gestore di trasporto e numero della procedura
+	-> enum clnt_stat clnt_call (clnt, procnum, inproc, in, outproc, out, tout)
+
+
+
+

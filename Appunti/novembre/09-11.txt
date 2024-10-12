@@ -1,0 +1,52 @@
+Gli oggetti hanno come concetto fondamentale l'incapsulamento, nascondono lo stato interno che è accessibile solo tramite i loro metodi.
+Gli oggetti hanno una semantica per riferimento( locale, non vedo oggetti di un'altra macchina ).
+
+RMI nasce per introdurre la possibilità di vedere metodi di oggetti remoti, su altre macchine.
+
+I riferimenti remoti vengono creati utilizzando delle variabili interfaccia.
+
+Si usa sempre TCP come protocollo di trasporto dato che trasferiamo sempre grafi di oggetti serializzati che possono essere anche molto lunghi.
+
+rmiregistry è un sistema di nomi che registra tutti i servitori LOCALI della macchina. Il cliente per ottenere un riferimento remoto dovrà andare sul registry.
+
+passare parametri per riferimento con java rmi è impossibile perchè la memoria dall'altra parte è diversa.
+
+Java RMI lavora in the small -> si può permettere anche algoritmi molto costosi -> esempio di deallocazione di un oggetto non più riferito anche da macchine remote.
+
+Non c'è bisogno di fare "marshalling" dei dati, dato che la comunicazioni avviene tra due jvm che sono omogenee.
+
+java è solo sincrono e bloccante per quanto riguarda la attivazione dei metodi.
+
+il protocollo proprietario di trasporto della jvm decide quando aprire, chiudere e la durata della connessione.
+
+ogni richiesta ad un metodo remoto viene servita generando un thread figlio -> servitore parallelo.
+
+i thread che offrono i serivizi di un server sono paralleli, di conseguenza ne dobbiamo gestire la concorrenza.
+
+il servitore da lo stub al cliente se lui non ce l'ha.
+
+noi dobbiamo sincronizzare il meno possibile guarda esempio registrazione-registra.
+
+la logica dei sistemi distribuiti è sincronizzare il meno possibile.
+
+----------------- GENERALITà di RMI ------------------
+
+RMI come insieme di strumenti, politiche e meccanismi che permettono ad un’applicazione Java in esecuzione su una macchina, di invocare i metodi di un oggetto 
+di una applicazione Java in esecuzione su una macchina remota.
+	• Viene creato localmente solo il RIFERIMENTO ad un oggetto remoto, che è invece effettivamente attivo su un nodo remoto
+	• Un programma cliente invoca i metodi attraverso questo riferimento localmente mantenuto in una variabile interfaccia
+	
+----------------- STUB e SKELETON -------------------
+
+In Java non sono (direttamente) disponibili riferimenti remoti, ma RMI permette di costruirli.
+Si usa una variabile interfaccia per contenere un riferimento a un proxy che permette di controllare e preparare il passaggio da un ambiente cliente ad un ambiente servitore:
+	– Due proxy: stub dalla parte cliente e skeleton dalla parte servitore
+		• Stub: proxy locale su cui vengono fatte le invocazioni destinate all’oggetto remoto
+		• Skeleton: entità remota che riceve le invocazioni fatte sullo stub e le realizza effettuando le corrispondenti chiamate sul serve
+	– Pattern Proxy: questi componenti nascondono al livello applicativo la natura distribuita dell’applicazione
+	
+Il livello Remote Reference Layer (RRL):
+responsabile della gestione dei riferimenti agli oggetti remoti, dei parametri e delle astrazioni di una connessione stream-oriented
+
+
+	

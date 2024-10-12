@@ -1,0 +1,15 @@
+-se voglio un numero o un carattere devo consumare il fine linea in più che inserisco:
+	scanf("%d", &num);
+	getc(&ok);
+
+-se inserisco delle cose sbagliate devo consumare le cose successive a fino dove sono arrivato a leggere:
+	while( (ok = scanf("%i", &num1)) != EOF ) {
+		if (ok != 1) {  // errore di formato
+			do {
+				c=getchar();
+				printf("%c ", c);
+			} while (c!= '\n');
+		}
+		
+		printf("Inserisci valore intero, EOF per terminare: ");
+	}

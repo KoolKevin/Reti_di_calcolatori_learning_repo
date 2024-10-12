@@ -1,0 +1,12 @@
+---------------------- ES. DIRECTORY LISTING ----------------------
+(bisogna dereferenziare un puntatore a riga 27 del server).
+
+In XDR le parentesi angolari <> indicano una lunghezza variabile.
+
+I parametri di una chiamata rpc vengono deallocati tramite svc_freeargs() nello stub del server. Questi parametri vengono allocati dal sottosistema RPC.
+
+xdr_free() dealloca la memoria di un tipo complesso definito nel file xdr.
+
+----------------- SVOLTA 8 ---------------------
+
+quando una procedura non prende alcun parametro -> puntatore a void

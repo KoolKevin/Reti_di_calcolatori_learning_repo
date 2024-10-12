@@ -1,0 +1,22 @@
+-------------- RPC modalità asincrone ---------------
+in RMI NON c'è una modalità asincrona piuttosto si creano dei thread appositi ed aspettano loro.
+
+le RPC invece hanno una modalità asincrona!
+Innanzitutto bisogna usare TCP per garantire che i pacchetti arrivino con più probabilità. TCP è un trasporto più affidabile e minimizza le perdite di pacchetti.
+Successivamente il servitore non deve prevedere risposta( ritorna void ) e poi il cliente non deve stare ad aspettare, quindi settiamo il suo timeout a 0.
+
+L'unica procedura sincrona che chiamiamo è la NULL_PROC, se il servitore risponde possiamo assumere che le chiamate asincrone siano andate a buon fine. 
+
+ricorda: il gestore di trasporto è il contenitore che consente ai due processi di diventare remoti.
+
+quando è il caso di usare tcp? quando si eccede il limite di dimensione di un datagramma(64kb circa).
+
+------------ SISTEMI DI CHIAMATE REMOTE --------------
+SOLAMENTE DUE COSE DA RICORDARE:
+	1) Nei sistemi di chiamate remote i metodi che vengono resi disponibili da remoto diventano disponibili SOLO da remoto( boh non mi sembra a me però).
+	   Questo è il prezzo da pagare per rendere remoti  dei metodi, se sono sulla stessa macchina non posso chiamare localmente una procedura remota.
+
+        2) Il binding dinamico viene realizzato tramite il contratto definito dall'interfaccia e dal sistema di nomi che restituisce un servitore che implementa quest'ultima.
+           Il cliente dice che ha bisogno dei servizi di una determinata interfaccia e dinamicamente il cliente troverà solo servitori di quel tipo.
+           Il binding è dinamico perchè solo al momento della richiesta, grazie al servitore di nomi, viene assegnato un server al cliente. Il binding statico invece definisce
+           il servitore a tempo di scrittura del codice.

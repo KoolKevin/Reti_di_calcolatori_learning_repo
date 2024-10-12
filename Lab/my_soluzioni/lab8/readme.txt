@@ -1,0 +1,3 @@
+1)La inizializzazione dentro lo stub del server della struttura dati, causa un fallimento nella chiamata. Non ho capito perchè! -> versione che dovrebbe funzionare ma non funziona 
+2)è importante in questi esercizi inizializzare sempre l'output che si ritorna. Dato che è static non viene deallocato e quindi con chiamata successive c'è il rischio di ritornare risultati
+sbagliati se si usano cose come +=, -=, strcat(), ecc...

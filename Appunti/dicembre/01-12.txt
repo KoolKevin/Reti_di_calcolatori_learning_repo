@@ -1,0 +1,12 @@
+---------------- TCP/IP ------------------
+STACK di protocolli a basso overhead e best effort
+
+
+--------------
+ARP nonostante sia un protocollo di livello due utilizza il livello di trasporto, in particolare si appoggia su udp.
+ARP, come tutti i protocolli che si appoggiano su udp, può andare in broadcast.
+
+--------------
+DHCP usa UDP dato che manda in broadcast
+
+man this was a waste of time...

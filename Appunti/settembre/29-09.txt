@@ -1,0 +1,21 @@
+In java non si possono definire strutture dati!!!
+
+In java, per alcune funzioni, la fine del file viene gestita come eccezione. Cosa in principio sbagliata.
+
+Java permette la serializzazione, cioè linearizzare il contenuto di un oggetto in una sequenza di byte con lo scopo di salvare gli oggetti su una macchina esterna.
+I riferimenti ad oggetti di altre classi vengono rappresentati come link alle loro posizioni nel messaggio linearizzato.
+
+NB: la serializzazione permette di passare dal grafo dei riferimenti degli oggetti ad una forma appunto linearizzata
+NB: il messaggio linearizzato è grande, non ci sta in un datagram IP per questo java usa TCP per la serializzazione.
+
+----------------- PRINCIPI DI PROGETTO:
+
+le funzioni di stringa in C sono efficienti ma non SAFE:
+	-quelle di output si aspettano una stringa ben fatta in ingresso cioè con lo zero binario alla fine.
+	-quelle di input si aspettano che non si ecceda la memoria predisposta a contenere la stringa.
+
+....
+
+
+
+----------------- OGGETTO DEL CORSO:

@@ -1,0 +1,154 @@
+-------------- RPC, Generalità ---------------
+modello cliente e servitore sopra la presentazione(formato dei dati diverso), le rpc sono pensate per funzionare anche con client e server diversi(es. client c con server phyton).
+
+Requisiti per implementazione RPC:
+Uso di una infrastruttura di supporto SUN che viene inglobata nei processi impegnati nella interazione.
+Il supporto scambia messaggi per consentire
+	• identificazione dei messaggi di chiamata e risposta
+	• identificazione unica della procedura remota
+Il supporto gestisce l’eterogeneità dei dati scambiati
+	• marshalling/unmarshalling argomenti;
+	• serializzazione argomenti;
+Il supporto gestisce alcuni errori dovuti alla distribuzione
+	• implementazione errata
+	• errori dell'utente
+	• roll-over (ritorno indietro)
+
+Semantica di interazione:
+	-exactly once, neanche considerata. Troppo costosa in termini sopratutto di tempo.
+	-at least once, default di SUN RPC.	(default perchè così il servitore non deve mantenere dello stato)
+	-at mosto once, possibile in SUN RPC
+	
+	-le chiamate del cliente sono SINCRONE e BLOCCANTI
+	-i metodi vengono eseguiti sul servitore in modo SEQUENZIALE
+	
+---------------- IMPLEMENTAZIONE DEL SUPPORTO ------------------
+Noi vediamo l’implementazione e il supporto RPC di Sun Microsystems: Open Network Computing (ONC).
+ONC include:
+	-Remote Procedure Call GENerator (RPCGEN), generatore degli stub del cliente e del servitore.
+	-eXternal Data Representation(XDR), linguaggio per descrivere le interfacce.
+	-Portmapper, registro che fa da sistema di nomi per i server.
+	-Network File System (NFS), file system distribuito di Sun
+
+------------ ARCHITETTURA ----------------
+Sia il servitore che il cliente hanno uno stub che realizza il supporto RPC.
+C'è un sistema di nomi chiamato Portmapper, anch'esso un servitore RPC, per trovare i servitori rpc. 
+I servitori RPC sono solo i metodi, solo con il suo stub funzionano le chiamate remote.
+RPC supporta a livello di trasporto sia TCP che UDP(default UDP per essere più veloci; con semantica però at-least-once, quindi con ritrasmissione).
+
+------------ DEFINIZIONE DEL CONTRATTO RPC --------------
+Le RPC sono basate su un contratto esplicito sulle informazioni scambiate e che permetta un accordo preciso tra un processo che si trova su una ARCHITETTURA DIVERSA da quella del
+fornitore del servizio.
+Ci sono due momenti:
+	1) Contratto tra le operazioni che si possono chiedere e fornire in base ad un sistema di nomi che tutti conoscono(portmapper). 
+	   SUN sceglie di avere nomi basati sulla tripla <#programma, #versione, #procedura> e si tiene il protocollo come possibilità (UDP, TCP)
+	2) Specifica della procedura da invocare usando argomenti di tipo specificato: si sceglie di avere UN UNICO argomento in ingresso e un unico di uscita.
+	
+------------- DEFINIZIONE DEL PROGRAMMA RPC -----------------
+Le RPC sono basate su un contratto esplicito sulle informazioni scambiate, che consiste di due parti descrittive:
+1. definizioni di programmi RPC: specifiche del protocollo RPC per i servizi offerti, cioè l'identificazione dei servizi ed il tipo dei parametri
+2. definizioni XDR: definizioni dei tipi di dati dei parametri. Presenti solo se il tipo di dato non è un tipo noto in RPC (per i dettagli vedere più avanti...)
+
+Entrambe le parti raggruppate in un unico file con estensione .x cioè in formato XDR sorgente. Ad esempio per il programma stampa tutte le definizioni contenute in stampa.x
+
+-------------- DEFINIZIONE DEL SERVIZIO REMOTO --------------------
+/* stampa.x file sorgente XDR */
+program STAMPAPROG {
+	version STAMPAVERS {
+		int PRINTMESSAGE(string) = 1;
+	} = 1;
+} = 0x20000013;
+
+Tralasciando per ora program e version (che vediamo dopo), questo pezzo di codice definisce la procedura PRINTMESSAGE, con un argomento di tipo string e un risultato di tipo int (intero)
+Si notino i vincoli per RPC di SUN:
+• ogni definizione di procedura ha un solo parametro d'ingresso e un solo parametro d'uscita
+• gli identificatori (nomi) usano lettere maiuscole
+• ogni procedura è associata ad un numero di procedura unico all’interno di un programma!!!
+
+-------------- IMPLEMENTAZIONE DEL PROGRAMMA RPC ----------------
+
+Il programmatore deve sviluppare:
+	1. il programma cliente: implementazione del main() e della logica necessaria per reperimento e binding del servizio/i remoto/i
+	2. il programma server: implementazione di tutte (e solo) le procedure (servizi)
+
+NB: il programattore si deve occupare solo della logica di buisness, tutta la parte di supporto come stubs, gestori di trasporto, ecc... viene generata automaticamente.
+NB2: il programmatore non realizza il main() del server -> chi invoca la procedura remota (lato server)?
+--------------- CONSIDERAZIONI PRIMO ESEMPIO -------------
+Slide 13.
+Sviluppo della procedura di servizio:
+	• sia l’argomento di ingresso che l’uscita vengono passati per riferimento
+	• il risultato punta ad una variabile statica (allocazione globale, per essere presente anche oltre la chiamata della procedura(se no finiti la procedura il risultato verrebbe
+	  deallocato) 
+	• il nome della procedura cambia leggermente (si aggiunge il carattere underscore seguito dal numero di versione, tutto in caratteri minuscoli)
+Sviluppo del cliente:
+	• il cliente viene invocato anche con il nome dell'host remoto 
+	• il cliente utilizza il suo gestore di trasporto cl, che ottiene specificando: nome del server, programma, versione del servizio e protocollo di trasporto.
+	• il cliente chiama il metodo remoto invocando il suo stub e passandogli anche il suo gestore di trasporto
+	• il nome della procedura cambia: si aggiunge il carattere underscore seguito dal numero di versione (in caratteri minuscoli)
+	• Gli argomenti della procedura server sono solo due:
+		i) l’argomento di ingresso vero e proprio e
+		ii) il gestore di trasporto del client
+
+Gestore di trasporto:Si noti la creazione del gestore di trasporto cliente cl che è un riferimento ad un elemento di supporto.
+il gestore di trasporto (cl) gestisce la comunicazione col server( equivalente al RRL di RMI).
+
+---------------- VINCOLI SUN RPC --------------------
+• Un programma tipicamente contiene più procedure remote
+• Si prevedono anche versioni multiple delle procedure
+• Un unico argomento in ingresso ed in uscita per ogni invocazione
+
+Semantica e controllo concorrenza:
+non si prevede alcuna concorrenza a default nell'ambito dello stesso programma server → Server sequenziale ed una sola invocazione eseguita per volta
+Fino alla restituzione del risultato di ritorno al programma cliente, il processo cliente è sospeso in modo sincrono bloccante in attesa della risposta
+
+NB: Considerando servitori sequenziali c'è possibilità di deadlock → se un server in RPC richiede, a sua volta, un servizio al programma chiamante.
+NB2: le rpc di sun sono molto flessibili, andando ad agire sugli stub di client e server è possibile realizzare anche server parallele e metodi asincroni.
+
+Semantica e affidabilità:
+• Uso di protocollo UDP (default SUN)
+• Semantica at-least-once: a default, si fanno un certo numero di ritrasmissioni, dopo un intervallo di time-out (ad esempio, 4 secondi)
+
+---------------- SUPPORTO STANDARD RPC ---------------
+SUN ha definito una serie di strutture dati di supporto alle RPC. Vedi slide da 22 a 26.
+
+---------------- RPC e SISTEMA DI NOMI -----------------
+Il server registra le sue procedure nel portmapper(registerrpc()), il client fa la lookup(callrpc()) di quest'ultime nel portmapper ed ottiene la porta del processo del server 
+che può eseguire la chiamate remota alla procedura.
+
+SVC_RUN(): Dopo la registrazione della procedura, il processo non può terminare. Il processo che ha eseguito la registrazione deve rimanere in attesa di chiamate ed essere risvegliato
+in caso di richiesta -> Uso della svc_run() con cui il processo diventa un demone in attesa di tutte le possibili chiamate alle sue procedure.
+La svc_run() esprime la attesa infinita del server(è implementata come una select in un ciclo infinito)
+
+In realtà, il sistema di nomi portmapper si basa su una registrazione del seguente tipo: tripla {numero_progr, numero_vers, protocollo_di_trasporto} -> numero di porta {port}
+in una tabella detta port map(implementata come linked list). 
+Quindi il portmapper registra solo il programma, non tutte le singole procedure. Questo per economicità di registrazione ed anche di chiamate dato che facendo così basta una chiamata
+al portmapper per n invocazione di procedure di uno stesso programma.
+NB: portmapper -> programma; port map -> tabella
+
+NB: Manca il numero di procedura dato che tutti i servizi RPC (procedure all’interno di un programma) condividono lo stesso gestore di trasporto e sono selezionati alla invocazione
+e non in fase di registrazione
+
+Fase di Chiamata:
+La fase di chiamata è preceduta da una funzione di naming che esplora la port map e recupera il numero di porta data la tripla{prog, vers, prot}
+Questa informazione di stato è mantenuta in un gestore di trasporto del Cliente
+
+Portmapper:
+La gestione della tabella di port_map si basa su un processo unico per ogni nodo RPC detto port mapper che viene lanciato come demone.
+Il port mapper abilita due gestori di trasporto propri
+• uno per UDP ed
+• uno per TCP
+con due socket legate allo stesso numero di porta (111).
+Il numero di programma e di versione del port mapper: 100000 2
+
+Il portmapper offre i seguenti servizi:
+	• Inserimento di un servizio
+	• Eliminazione di un servizio
+	• lookup della porta
+	• Intera lista di corrispondenza
+	• Supporto all'esecuzione remota
+
+RIASSUMENDO: il portmapper riceve le registrazioni dei servizi dei server(vediamo dopo come) e fornisce i numeri di porta ai clienti che vanno da lui con 'clnt_create(...)' per fare
+le chiamate remote. 
+
+
+

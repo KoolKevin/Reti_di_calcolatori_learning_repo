@@ -1,0 +1,14 @@
+totale 120
+-rwxrwxr-x 1 kevin kevin 17504 nov  1 11:35 DeleteLineClient
+-rwxrwxrwx 1 kevin kevin  5368 nov  1 11:35 DeleteLineClient.c
+-rwxrwxr-x 1 kevin kevin 17632 nov  1 11:35 DeleteLineServer
+-rwxrwxrwx 1 kevin kevin  5360 nov  1 11:33 DeleteLineServer.c
+-rw-r--r-- 1 kevin kevin    22 nov  1 11:37 file
+-rw-r--r-- 1 kevin kevin     0 nov  1 11:01 fileConSoloUnaLinea
+-rw-r--r-- 1 kevin kevin    43 nov  1 11:36 fileNoLinea
+-rw-rw-r-- 1 kevin kevin     0 nov  3 18:04 fileRoba
+-rw-rw-r-- 1 kevin kevin    69 nov  1 10:06 fileTest
+-rwxrwxr-x 1 kevin kevin 17288 nov  1 09:28 LongestWordClient
+-rwxrwxrwx 1 kevin kevin  3751 nov  1 09:24 LongestWordClient.c
+-rwxrwxr-x 1 kevin kevin 17664 nov  3 18:02 LongestWordServer
+-rwxrwxrwx 1 kevin kevin  5005 nov  3 18:02 LongestWordServer.c

@@ -1,0 +1,7 @@
+- Esempi di creazione stream di input/output da socket:
+	DataInputStream inSock = new DataInputStream(socket.getInputStream());
+	DataOutputStream outSock = new DataOutputStream(socket.getOutputStream());
+	
+- Esempi di creazione stream di input/output da file binario:
+	DataInputStream inFile = new DataInputStream(new FileInputStream(nomeFile));
+	DataOutputStream outFile = new DataOutputStream(new FileOutputStream(nomeFile));

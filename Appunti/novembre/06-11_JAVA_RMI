@@ -1,0 +1,21 @@
+--------------- DETTAGLI/COSE DA RICORDARE ---------------
+
+Ricordati la select() permette agli utenti di livello applicativo di fare cose simili a quelle che fa il kernel.
+
+Ricordati la connect() è una primitiva pesante! Fa il 3-way handshake!
+
+La select() quando non termina immediatamente NON per forza ritorna 1. Il processo può non essere schedulato quando si verifica l'evento, di conseguenza finchè aspetta si posso verificare
+più eventi.
+
+per contare i file di un direttorio si usano le primitive opendir() e readdir().
+
+Per controllare se un file èu un direttorio in C posso fare chdir()/opendir() e vedere se ha successo.
+
+---------------- JAVA RMI ------------------
+
+Adesso siamo a livello esclusivamente applicativo. Non si vedono più delle socket, ci vengono nascoste.
+ 
+Le interfacce sono presenti durante l'escuzione del processo( non solo le classi ). Pensa a due processi remoti che interagiscono tramite il contratto stabilito dall'interfaccia.
+ 
+Ereditarietà nella serializzazione: quando trasporto un' istanza da una macchina ad un altra non trasporto anche tutte la gerarchia delle classi di cui fa parte(troppo costoso!) ma  
+trasporta una sintesi (hash) della sola classe dell'istanza. Si tiene la stessa sintassi ma sotto la semantica è diversa. 

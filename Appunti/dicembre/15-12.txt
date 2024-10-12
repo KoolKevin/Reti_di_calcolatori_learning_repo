@@ -1,0 +1,101 @@
+ricorda: la definizione dell'interfaccia definisce il contratto tra cliente e servitore.
+
+binding statico al contratto per ottenere binding dinamico tra cliente e servitore che hanno lo stesso contratto.
+FREQUENZA DEL BINDING: il  cliente andrà dal name server solo una volta e poi userà quel binding molte volte, altrimenti pagherebbe ad ogni richiesta il prezzo di 2 chiamate remote.
+ 
+Il cliente in genere è sincrono bloccante perchè viene bene farlo così. Se è sincrono bloccante in un determinato momento sia il client che il server sono presenti entrambi e quindi le cose
+si semplificano.
+
+in genere java offre un default semplice ma rende difficili le variazioni, c invece il contrario variazioni facili ma default un po' più complicate. Differenza di flessibilità.
+
+--------- SISTEMI DI NOMI -----------
+i sistemi di nomi sono dei semplici traduttori da nomi logici a nomi fisici: es DNS unibo.it <- 137.204.57.
+i nomi servono a raggiungere l'entita riferita dal nome -> per questo alcuni nomi incorporano dentro di loro anche come raggiungere l'entità riferita
+
+GLOBALITA/LOCALITA dei NOMI:
+	Per la scalabilità è importante avere coordinamento tra diverse località contigue. Globalità via Località
+
+	nomi locali -> es: file descriptor di una socket
+	nomi globali -> es: coppia (ip, porta) di una socket
+	sistema di nomi locale -> sistema operativo
+	sistama di nomi globale -> DNS
+
+SPAZI DI NOMI:
+	-piatto: nessuna struttura, adatto pero pochi utenti ed entità -> nomi dei servizi RMI/RPC
+	-partizionato: i nomi sono strutturati in una gerarchia -> spazio di nomi di DNS -> disi33.disi.unibo.it
+	-descrittivi/per attributi -> un nome è una struttura ad oggetto con vari attributi che identificano l'entità corrispondente -> X.500 es. (a1=12, a2="pippo", a3="*it*") 
+		-> hanno la particolarità di essere generalmente nomi di gruppo
+	
+CLIENTI DI UN SISTEMA DI NOMI:
+	- clienti delle entità che hanno un nome da risolvere.
+	- le entità cercate dai clienti che si devono registrare nel sistema di nomi
+	
+SISTEMI DI NOMI E NAME SERVER:
+	- Un sistema di nomi definisce la struttura dei nomi e le regole per cercarli
+	- Un name server implementa le regole del sistema di nomi ed è un servitore che risponde alle query dei clienti	
+Name server devono fornire operazioni per consentire la migliore operatività sugli oggetti interni, ossia le tabelle di corrispondenza modellate come tuple di attributi
+Le operazioni: 
+	- Query, ricerca un oggetto
+	- AddTuple, aggiungi una tupla dal server
+	- ModifyTuple/DeleteTuple, modifica/togli una tupla
+	- Enumerate, lista tutte le tuple, una alla volta
+Ogni sistema di nomi decide:
+	- il formato delle tuple
+	- il formato specifico delle operazioni
+Le realizzazioni prevedono sia Unico servitore sia Agenti Multipli
+Il servizio può essere centralizzato, o molto più spesso distribuito e anche replicato (vedi DNS)
+
+Nelle realizzazioni con molteplici Name Server il servizio prevede una comunicazione tra loro, usando
+• messaggi singoli, o datagrammi
+• connessioni
+• invocazioni di alto livello come RPC
+	
+GESTIONE NOMI:
+Nella gestione dei nomi sono fondamentali due decisioni
+	• Distribuzione dei nomi
+		I nomi sono mantenuti in oggetti che ne hanno la responsabilità o autorità con un partizionamento tra i server responsabili
+		Come dividere la gestione e il mantenimento? -> Con politiche di Clustering di vario genere:
+			• Algoritmico (hash table / tabelle hash) es. funzione di mapping
+			• Sintattico (pattern matching) es. iniziale del nome
+			• Basato su Attributi (tuple) es. sulla base del valore di attributi
+	• Risoluzione dei nomi
+		Per la Risoluzione dei nomi, le richieste dal cliente devono fluire fino al server che può dare risposta.
+		Il processo di risoluzione dei nomi per dare una risposta prevede alcune fasi (non sempre presenti)
+			• Trovare la autorità corretta
+			• Verificare le autorizzazioni alla operazione
+			• Eseguire la operazione
+		Ogni nodo specifica i name server noti e tende a limitare se possibile le comunicazioni tra i server(per esempio con caching)
+	
+I sistemi di nomi partizionati comportano la presenza di più servitori di nomi che si devono coordinare per risolvere le richieste dei clienti. Come fanno? boh guarda dettagli slide
+in particolare si parla di query. 
+si fanno solo ed esclusivamente tra SERVITORI dns.
+e ci sono 3 tipologie(slide 14): 
+	- ricorsive, il client(anch'esso un name server) fa una richiesta ad un name server se il server non ha una risposta fa una query a sua volta agli altri name server
+	  che conosce e cosi via.
+		-> il cliente deve fare solo una richiesta
+		-> i nodi alti dell'albero del dns sarebbero molto caricati per questo motivo questa modalità è permessa solo nei nodi bassi
+	- iterative, il client fa una richiesta ad un name server se il server non ha una risposta restituisce al client un altro name server che potrebbe averla e così via.
+		-> si scarica al client il costo di tutte le richieste
+	- transitive, uguale alla ricorsiva ma quando si trova il server con la risposta non si ritorna indietro passando da tutti i server attraversati ma il server con la risposta
+	  risponde direttamente al client
+
+ALLA DOMANDA: X usa tcp o udp? pensa sempre alla dimensione del messaggio, se grande tcp, se piccolo udp.
+
+---------------- X.500 ---------------
+è uno standard, non una implementazione.
+Altissima disponibilità -> moltissima replicazione.
+
+X.500 è un insieme di nodi organizzati in un albero che li interconnette e che devono avere una certa QoS
+	• Ogni nodo è costituito da attributi tipizzati che possono assumere valori: età = intero
+	• Ogni nodo prevede attributi in base alla gerarchia: aggiunge attributi rispetto al genitore
+	• Ogni gerarchia ha attributi in parte condivisi (padre) e poi differenziati da ogni nodo
+	• Le autorizzazioni alle operazioni sono molto granulari (anche su sottoalbero o nodo)
+
+una specie di database, ma non proprio:
+	-Supporta autorizzazioni molto granulari.
+	-I nodi non hanno uno schema per gli attributi.
+	-Ma sopratutto le letture vengono molto preferite alle scritture(data la alta replicazione).
+Un directory server quindi serve a modellare quelle informazioni che cambiano poco nel tempo. Inoltre vengono affiancati a database sussidiari che completano con le informazioni
+che invece cambiano facilmente nel tempo.
+
+

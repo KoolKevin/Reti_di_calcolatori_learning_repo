@@ -1,0 +1,57 @@
+le socket ingrandiscono lo spazio di indirizzamento dei processi.
+quando si istanzia una socket viene aggiunto un fd nella tabella dei file aperti di processo. La close la toglie.
+le porte sono numeri grandi 16 bit. Le porte da 0 a 1023 sono di sistema e non vanno usate.
+le porte di tcp sono le stesse(in quanto a valore del numero)di udp ma sono spazi separati.
+
+--------- SOCKET DATAGRAM IN JAVA ----------------
+
+Classe fondamentale DatagramSocket.
+Crea gli endpoint.
+Costruttore composto da IP e PORTA. NB: devono essere valori locali! es. l'ip deve essere un ip di una delle interfacce di rete disponibili sulla macchina, se no SocketException.
+Il sistema operativo blocca la creazione di socket su una porta già occupata. (Le socket quando vengono istanziate vengono salvate come fd, se c'è gia un fd occupato 
+il SO non apre un'altra socket)
+
+Due API primitive fondamentali di comunicazione per le socket datagram:
+	- send(DatagramPacket p)
+	- receive(DatagramaPacket p)
+NB: nel DatagramPacket olre alle informazioni da mandare ci sono anche le informazioni di protocollo che mi servono per comunicare, in particolare IP e PORTA del ricevente.
+
+SEND E RECEIVE SONO ASINCRONE!
+
+IP(?) è un protocollo BEST EFFORT, se mando un datagram ad una porta non impegnata di una macchina non se ne accorge nessuno!
+
+La send ha una semantica sincrona nei confronti della driver sotto. Se la driver non ha spazio per copiare il contenuto del pacchetto al suo interno, la send aspetta.
+
+Quando con una receive arrivano troppi byte nel ricevente i byte in eccesso vengono scartati, siamo in UDP! -> il ricevente deve avere spazio per almeno il più grande dei 
+datagrammi che gli possono arrivare.
+
+Quando faccio una receive l'ip e la porta del datagram che è arrivato vengono tradotti in quelli del MITTENTE!
+
+DATAGRAM SEND -> IP, PORTA del ricevente
+DATAGRAM RECEIVE -> IP, PORTA del mittente
+
+se sono un cliente non ho bisogno di imporre un IP ed una PORTA, posso prenderne rispettivamente uno locale e la prima disponibile -> costruttore vuoto.
+
+setData(res) serve più che altro come prassi. Specifica che in quel DatagramPacket ci va quell'array di byte.
+
+ricordiamoci sempre che sotto il protocollo IP non ha qualità. Nessuno si accorge di pacchetti mancanti/sbagliati.
+
+----------- MULTICAST ---------------------------
+
+Il multicast va gestito con attenzione perchè se mi unisco ad un gruppo ricevo tutto quello che viene inviato sul gruppo. Di conseguenza se non consumo i messaggi in fretta è facile
+che la memoria locale della mia driver si riempia.
+
+Il multicast in generale è molto costoso se non siamo tutti in rete locale dato che tutti i router intermedi dovrebbero venire istruiti per far passare i messaggi di multicast 
+causando molta traffico e congestione. Il multicast su internet praticamente costa come il broadcast su internet.
+
+-------------------------------------------------
+
+LAB: è molto sbagliato spezzare le informazioni in più datagrammi dato che siamo in UDP non è detto che arrivino in ordine.
+
+Visioni di livelli diversi su array di byte. (Java in generale non lo consente ma qui si).
+
+controllare l'intervallo delle porte in ingresso.
+
+Se un datagramma arriva al server è MOLTO probabile che sia arrivato corretto dato che se un bit fosse stato alterato durante la trasmissione il datagram sarebbe stato scartato
+dai protocolli di internet
+

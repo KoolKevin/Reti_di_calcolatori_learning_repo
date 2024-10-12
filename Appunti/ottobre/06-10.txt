@@ -1,0 +1,47 @@
+in Java abbiamo i thread, di conseguenza i servitori concorrenti in java si possono permettere i costi di creazione e distruzione di processi.
+	In java -> servitori concorrenti paralleli
+in c abbiamo api per creare processi pesanti.
+	In c -> servitori concorrenti monoprocesso. 
+
+-------- Esercitazione 0 ------------------
+
+nei file di testo le righe hanno un limite di caratteri imposti dal sistema operativo.
+
+il produttore NON è un filtro dato che non è obbligato a consumare tutto lo stdin. Se io scrive 12 linee lui può decidere di prendere le prime 10 e scartare le ultime 2.
+
+quando una linea entra nel programma essa viene trasformata in una stringa(\n -> \0).
+
+In c i cast NON producono codice, In java invece, linguaggio fortemente tipato, ne producono.
+
+La scanf() NON consuma il fine linea con formati interi/float.
+
+In java quando si concatenano stringhe il fine linea viene aggiustato di conseguenza dopo la fine
+
+il metodo BufferedReader.readline() non include il fine linea \n
+
+L'utente per dare la fine del file si usa (ctrl+d in unix, ctrl+z in windows)
+
+La strlen()/.length() conta fino allo \0 escluso.
+
+---------- SERVIZI DI NOMI --------------------
+
+Un servitore di nomi è un PROCESSO o un INSIEME di PROCESSI.
+
+I Sistemi di nomi non riescono a stare su una macchina singola! per due motivi:
+	- non c'è abbastanza spazio in memoria
+	- non si riescono a gestire tutte le richieste
+
+concetti importanti:
+	- partizionamento
+	- replicazione 
+	- località
+
+i nomi trasparenti alla locazione di servizi necessitano dei sistemi di nomi.
+
+i nomi di dominio sono case insensitive.
+
+i nodi DNS sono servitori altamente paralleli.
+
+nei livelli alti il modello di risoluzione delle query dns diventa automaticamente iterativo.
+
+con il metodo ricorsivo la cache viene aggiornata in tutti i nodi intermedi.

@@ -1,0 +1,4 @@
+Perchè sono state inventate le RPC? Offrono un livello di astrazione maggiore rispetto a quello delle socket, le socket lavorano su stream di byte oppure con dei datagram, mentre le rpc
+appunto direttamente con dei metodi -> più immediato.
+
+

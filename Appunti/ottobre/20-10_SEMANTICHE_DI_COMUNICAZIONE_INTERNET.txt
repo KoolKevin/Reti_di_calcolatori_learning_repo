@@ -1,0 +1,48 @@
+Noi non possiamo fare a meno delle socket a stream dato che c'è il bisogno di trasferire file, che non sono oggetti serializzabili 
+	-> NON ci stanno in memoria o meglio nel buffer della socket.
+	
+Quando il file finisce noi chiudiamo la socket così l'altro lato riceve l'eof . <<IMPORTANTE!>>
+	-> il fine file nella comunicazione con connessione rappresenta la fine della comunicazione(da un lato);
+
+Leggere a blocco è meglio che leggere un byte alla volta?? C a quanto pare si, java a quanto pare no;
+
+NON fare protocolli del tipo: ti mando 8k, tu mi confermi che hai ricevuto 8k; Il canale tcp è ben fatto ed ha una semantica at most once, non c'è bisogno di sincronizzarsi in questo modo.
+
+I thread hanno memoria condivisa, solo variabili globali però. Ogni thread ha il suo stack ed il suo heap quindi non ci sono problemi :)
+
+Nel caso di remote copy i thread convengono molto dato che il tempo di interleaving è elevato dato che i thread aspettano quando devono scrivere su disco e quando leggono dalla socket.
+(se il disco non mi risponde aspetto, se lo stream è vuoto aspetto).
+
+La close chiude la socket a livello di processo pesante! La chiude per tutti.
+
+------------------- ESERCITAZIONE DI LAB ---------------------
+Mandare file binari è diversi rispetto a mandare file di testo, un file di testo NON può contenere lo zero binario per esempio e quindi se mando più file alla volta differenziandoli
+interponendo un carattere di zero binario tra di loro. Un file binario invece NON ha vincoli.
+
+é sempre meglio non fare aspettare se non c'è bisogno, se posso andare avanti meglio.
+
+tangente: Per ordinare dei file dobbiamo usare sempre dei sottofile.
+
+----------- SEMANTICA DELLA COMUNICAZIONE DI INTERNET(INTERNET PROTOCOL) -------------
+premessa: gli eventi di perdita sono rari.
+
+La semantica di internet è MAY BE / BEST EFFORT -> -qualità e -costi -> i datagrammi possono venire persi, arrivare disordinati o arrivare due volte.
+
+La semantica delle rpc è AT LEAST ONCE, mi aspetto una risposta -> ritrasmissione -> +qualità +costi
+	-questo significa che le procedure possono venire eseguite anche più volte per una stessa richiesta! poco male se idempotente, MOLTO MALE se non idempotente!
+
+La sematica di tcp è AT MOST ONCE, mi aspetto una risposta ed inoltre il servitore memorizza il fatto che ha già ricevuto la richiesta e non ripete le operazione alla ricezione multipla
+della stessa richiesta. (il servitore mantiene dello stato( per un certo tempo) -> tabella delle operazioni gia eseguite)
+
+NB: IN CASO DI INSUCCESSO SIA AT LEAST ONCE CHE AT MOST ONCE NON CI DICONO NIENTE!
+	- più nel dettaglio questo è dovuto dal fatto che appogiandosi su internet un servitore congestionato è indistinguibile da uno in crash!
+	  se per esempio un cliente tcp si arrende dopo molte ritrasmissioni senza risposta NON c'è modo di sapere se i pacchetti sono arrivati al server, se l'operazione richiesta è
+	  stata eseguita oppure se c'è un problema nella rete che impedisce ai pacchetti di ritornare.
+	  Il client si arrende e considera il servitore semplicemente irraggiungibile ma le operazioni potrebbero essere state eseguite :(
+	  Stessa cosa per un cliente RPC.
+CONCLUSIONE: TCP non ci garantisce niente quanto le cose vanno male dato che si basa su IP. 
+
+Esiste anche la semantica EXACTLY ONCE -> tutti e due sanno cosa è successo o non successo(semantica tutto o niente). -> costo altissimo dovuto alla alta sincronizzazione necessaria.
+Se per esempio un client fa una richiesta ad un server spento, il client deve aspettare tutto il tempo necessario affinchè il server torni raggiungibile. (infattibile)
+
+

@@ -1,0 +1,123 @@
+Il problema del livello di presentazione è quello di trasformare la rappresentazione dei dati di una macchina mittente a quella di una macchina ricevente.
+
+Questa trasformazione si può fare in 2 modi:
+	-il mittente conosce il formato del ricevente
+	-c'è uno standard e il mittente trasforma dalla sua rappresentazione allo standard, il ricevente fa il viceversa 
+	
+Ricorda i file non sono serializzabili perchè troppo grandi per tenerli in memoria. Per trasferire file bisogna fare un algoritmo ad hoc che ne trasferisce il contenuto.
+Le cose serializzabili sono tipicamente di livello applicativo.
+
+Quando serializzo, ogni oggetto ha un hash della sua classe( una specie di checksum ), al momento della deserializzazione java controlla che ci sia una classe con lo stesso hash nella
+macchina remota. Se si la deserializzazione avviene se no, no.
+
+In generale il passaggio dei parametri a metodi remoti avviene per valore!
+
+Oggetti remotizzabili(es: server che si ottengono da Naming.lookup()) sono oggetti riferibili da remoto!(grazie a tutta l'architettura stub-skeleton).
+Quando passo un oggetto remotizzabile come parametro, il parametro passato è istanza dello stub che riferisce l'oggetto remoto.
+
+Lo stub è per il cliente il servitore locale( proxy del servitore remoto ), quindi ha tutto quello che ha il servitore remoto
+
+Dispatching: è la capacità di capire data una invocazione di basso livello di capire cosa fare. Lo skeleton fa il dispatch, capisce che metodo è stato chiamato.
+
+é il livello di trasporto della jvm che si occupa di generare i thread che servono le richieste di invocazione di metodi remoti dei clienti. Un thread per richiesta, finita la gestione
+della richiesta il thread viene buttato.
+
+La jvm non usa tcp, usa il suo livello di trasporto che usa tcp!
+
+RMI Lavora nel piccolo! Usa reference counting per fare garbage collection degli oggetti remoti.
+
+Si possono ottenere riferimenti ad oggetti remoti senza fare la lookup, attraverso il CLASS LOADER
+
+------------------- RMI ARCHITETTURA ------------------------
+
+------ SERIALIZZAZIONE: ---------
+In generale, nei sistemi RPC, ossia in cui riferiamo funzionalità remote, i parametri di ingresso e uscita subiscono una duplice trasformazione per risolvere problemi di rappresentazioni
+eterogenee(presentazione di OSI):
+	• Marshalling: processo di codifica degli argomenti e dei risultati per la trasmissione
+	• Unmarshalling: processo inverso di decodifica di argomenti e risultati ricevuti
+	
+Java però non ne ha bisogno dato che la jvm è uniforme nella rappresentazione dei tipi dei dati.
+
+In Java, grazie all’uso del BYTECODE uniforme e standard, NON c’è bisogno di un/marshalling: i dati vengono semplicemente serializzati/deserializzati:
+	- Serializzazione: trasformazione di oggetti complessi in semplici sequenze di byte
+	- Deserializzazione: processo inverso
+	
+NB: Stub e skeleton utilizzano queste funzionalità per lo scambio dei parametri di ingresso e uscita con l’host remoto
+
+Es. di de/serializzazione:
+	Record record = new Record();
+	FileOutputStream fos = new FileOutputStream(“data.ser”);
+	ObjectOutputStream oos = new ObjectOutputStream(fos);
+	oos.writeObject(record);
+	
+	FileInputStream fis = new FileInputStream(“data.ser”);
+	ObjectInputStream ois = new ObjectInputStream(fis);
+	record = (Record)ois.readObject(); 
+	
+Si possono usare soltanto istanze di oggetti serializzabili, ovvero che:
+	– implementano l’interfaccia Serializable
+	– contengono esclusivamente oggetti (o riferimenti a oggetti) serializzabili
+	
+NOTA BENE:
+NON viene trasferito l’oggetto vero e proprio (tutto il suo grafo) ma tutte le informazioni contenute che caratterizzano l’istanza singola e non la classe.
+	-> no metodi, no costanti, no variabili static, no variabili transient. 
+Al momento della deserializzazione sarà ricreata una copia dell’istanza “trasmessa” usando la classe locale ricevente (deve quindi essere accessibile!!!) dell’oggetto
+e tutte le informazioni ricevute per creare il grafo in remoto.
+
+NOTA BENE 2:
+Si consideri la possibilità che la classe locale non sia uguale a quella di partenza!!!!
+-> Impaccamento e uso di un hash per l’oggetto che consente di verificare la correttezza della classe sul nodo di arrivo (le due classi devono avere lo stesso hash per procedere)
+per ogni istanza da trasferire
+
+DEF: quando si parla di DEEP COPY si intende la serializzazione ed invio dell'intero grafo degli oggetti riferiti di un oggetto nel contesto di un trasferimento.
+
+--------- PASSAGGIO DEI PARAMETRI ------------
+In Locale:
+	• Copia → tipi primitivi
+	• Per riferimento → tutti gli oggetti Java (tramite indirizzo locale e semantica per rifermento locale
+
+In Remoto problema nel riferire entità e contenuti non locali:
+	• Passaggio per valore → tipi primitivi e Serializable Object.
+	Oggetti la cui locazione in memoria non è rilevante sono passati per copia ossia per valore.
+	->ne viene serializzata l’istanza (grafo che parte dalla istanza) e trasmessa e deserializzata a destinazione per produrre una copia locale
+	• Passaggio per riferimento remoto → Remote Object (via RMI)
+	Oggetti la cui funzione è strettamente legata al nodo (e alla JVM) in cui eseguono (server) sono passati per riferimento remoto:
+	->ne viene serializzato lo stub, creato automaticamente a partire dalla classe locale dello stub
+	
+---------- STUB ------------
+
+Lo stub effettua l’invocazione ai metodi remoti, gestisce la de/serializzazione, e spedisce/riceve gli argomenti e il risultato.
+Si appoggia sul Remote Reference Layer (RRL).
+• Estende java.rmi.server.RemoteStub
+• Implementa java.rmi.Remote e l’interfaccia remota del server (es. EchoInterface)
+• Contiene un’istanza del riferimento all’oggetto remoto (super.ref di classe java.rmi.server.RemoteRef)
+• Contiene un riferimento allo stato della chiamata (remotecall)
+
+---------- SKELETON ------------
+Lo skeleton gestisce la de/serializzazione, spedisce/riceve i dati appoggiandosi sul RRL, ed invoca il metodo richiesto(dispatching)
+Metodo dispatch invocato dal RRL, con parametri d’ingresso:
+• Riferimento al server (java.rmi.server.Remote)
+• Chiamata remota, numero operazione, e hash della classe server
+NB: NON c’è creazione di thread qui! Dove e da chi viene creato il thread???? nel livello di trasporto della jvm!
+
+--------------------- CLASS LOADING e SECURITY MANAGER ------------------------------
+(guarda slide 57 e capisci tutto)
+Il client ottiene l'istanza dello stub del server dal RMI REGISTRY, ha però bisogno della CLASSE dello stub del server!
+La recupera dalla codebase associata al server!
+La codebase è una proprietà del server che viene annotata nel RemoteRef pubblicato sul registry (cioè contenuta nell’istanza dello stub).
+Il client può scaricare altre classi oltre allo stub quali: interfaccia contratto e classi dei valori di ritorno dei metodi del server.
+
+Allo stesso modo il server può fare del class loading degli oggetti passati come parametri nelle chiamate.
+
+Lo scaricamento automatico di codice da remoto è una operazione rischiosa, quindi il tutto è mediato da un security manager che decide cosa si può scaricare e cosa no.
+
+
+
+
+
+
+
+
+	
+	
+	

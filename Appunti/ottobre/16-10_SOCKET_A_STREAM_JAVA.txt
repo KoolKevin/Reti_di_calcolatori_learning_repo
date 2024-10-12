@@ -1,0 +1,54 @@
+Un servitore fà delle exit solo se ci sono degli errori GRAVI! Essendo una macchina che offre un servizio che deve durare per sempre non si interrompe al minimo errore.
+
+Con le socket a  stream gli endpoint vengono messi in corrispondenza tra di loro per creare una CONNESSIONE! Le due coppie (IP, PORTA), che identificano gli endpoint, formano il canale.
+Dato un canale, ci possono essere al più due processi che lo usano. Un ricevente ed un mittente. Se ci fossero più processi si perderebbe l'identità del mittente/ricevente.
+
+Il canale ha una vita finita decisa dal cliente.
+
+Il canale TCP ha una semantica AT MOST ONCE, i pacchetti arrivano al massimo una ed una sola volta a chi estrae dal canale senza ripetizioni e senza perdite. Se tutto va bene.
+
+3 way handshake per aprire la connessione, 4 way handshake per chiudere la connessione sempre! Ognuno chiude il suo lato in uscita della connessione dato che è il lato di cui è responsabile.
+
+------------------- SOCKET A STREAM -----------------
+
+	- SOCKET -
+La creazione della socket produce in modo atomico anche la connessione al server corrispondente o lancia l’eccezione
+COSTRUTTORI:
+	public Socket(InetAddress remoteHost, int remotePort); throws IOException;
+	 //Crea una socket stream cliente e la collega alla porta specificata della macchina all’indirizzo IP dato (equivale in Unix a: socket, bind, connect)
+	  
+Il costruttore di una Socket() fallisce se il servitore non c'è sull'altra macchina specificato dato che non c'è la ServerSocket che crea il canale.
+
+	- SERVER SOCKET -
+I server oltre ad una socket normale hanno anche una server-socket che serve a facilitare la creazione dei canali.
+Una ServerSocket è una socket capace solo di accettare richieste di connessione provenienti da diversi Client (da una coda di queste)
+	• più richieste di connessione pendenti allo stesso tempo
+	• Al momento della creazione si effettuano implicitamente le operazioni più elementari visibili in UNIX, come socket, bind e listen
+	
+La connessione richiede di essere stabilita su iniziativa del server (ottenuta tramite primitiva di comunicazione accept).
+Obiettivo della accept è restituire un normale oggetto Socket nel server per la specifica connessione e trasmissione dati. 
+NB: la ACCEPT è bloccante finchè non arriva una richiesta di connessione da un cliente(server passivo).
+
+
+COSTRUTTORI:
+	public ServerSocket(int localPort, int count)
+	// crea una socket in ascolto sulla porta specificata con una coda di lunghezza count
+
+(REMINDER!)Le primitive sono entità passive, vengono eseguite dai processi.
+
+
+------------- CHIUSURA SOCKET ----------------
+
+close() -> primitiva passante.
+
+Quando facciamo una close la driver butta via/fa flush() i dati nei buffer di ingresso e uscita, cioè i dati del livello di trasporto che NON ho consumato.
+
+dati in ingresso -> butta via
+dati in uscita -> flush() -> viene garantita la consegna -> tcp semantica at most once
+
+-------------- OPZIONI SOCKET STREAM ---------------
+
+tcp bufferizza i dati per non mandare pacchetti di pochi byte che causerebbero molto overhead.
+
+keep alive -> manda dei messaggi di keep alive su canali che non stanno venendo utilizzati per controllare se l'altro è ancora vivo, così vado via anche io.
+

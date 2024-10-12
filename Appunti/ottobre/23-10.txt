@@ -1,0 +1,21 @@
+-------------------- SOCKET IN C --------------------
+
+Le primitive di UNIX sono sincrone e bloccanti SOLO A LIVELLO LOCALE. Passsano la roba alla driver di sotto e poi continuano.
+
+Le socket unix sono pensate per domini eterogenei.
+
+In c strutture dati come argv terminano con un zero binario. Di conseguenza anche senza argc potremmo saperne la dimensione scorrendo.
+
+RICORDARE, i puntatori sono sempre di 4 byte. Il cast di un puntatore e il dereferencing ci dicono che tipo stiamo leggendo sull'area puntata.
+
+non useremo getServByName().
+
+----------------- PRIMITIVE PRELIMINARI ------------------
+
+- socket(), lavora solo a livello locale ed impegna un fd.
+- bind(), la bind lega la socket alla porta cliente ed all'ip cliente. (lega la macchina locale ai livelli sottostanti ip e tcp; ricordati il disegno), "lungnome" è la lunghezza in byte
+  del sockaddr. Primitiva locale che fa il bind con il mio ip e la mia porta.
+
+
+- la sendto() può fallire se la driver non ha memoria -> msg troppo grande.
+Ricordarsi che il ricevente deve avere uno spazio sufficente per il più grande dei mittenti.

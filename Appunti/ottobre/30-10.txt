@@ -1,0 +1,8 @@
+Il cliente nel modello c/s è in genere sincrono e BLOCCANTE. Tuttavia a volte possiamo progettare dei clienti che mandano più messaggi prima di ricevere le risposte, in sostanza un cliente
+NON bloccante. In questo modo dobbiamo aspettare la risposta per un tempo pari a solo la risposta del servitore più lento.
+
+Oggi abbiamo visto un esempio lungo di questo tipo.
+
+RICORDA: quando faccio una read()/receive() mi sblocco e vado avanti quando arriva anche solo UN byte. Di conseguenza se voglio ricevere a blocchi di più byte devo fare più read().
+
+inet_ntoa() si passa da formato internet a formato ascii cioè dot notation.

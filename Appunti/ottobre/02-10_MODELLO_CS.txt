@@ -1,0 +1,103 @@
+-----------------I DUE MODELLI/PROTOCOLLI DI COMUNICAZIONE-------------------
+Servono a rendere possibile la comunicazione tra processi distribuiti.
+I modelli Client/Server e Scambio di Messaggi sono entrambi capaci di modellare ogni tipo di applicazione come capacità espressiva ma hanno caratteristiche diverse.
+Ognuno dei due si può implementare con l’altro
+
+CLIENT/SERVER			SCAMBIO DI MESSAGGI
+sincrono 			asincrono
+bloccante 			non bloccante
+comunicazione diretta  	comunicazione indiretta
+singolo ricevente 		Riceventi molteplici
+
+-----------------MODELLO CLIENTE SERVITORE------------------
+Il modello Cliente / Servitore è un modello di coordinamento tra due entità che cooperano per una comunicazione e un servizio.
+
+Il cliente ha l’iniziativa e si attiva per richiedere un servizio e aspettare una risposta
+Il servitore rimane in attesa, riceve la richiesta, esegue il servizio e da una risposta al cliente
+Il servitore deve servire molti clienti
+
+La implementazione è molto varia.
+
+Noi definiamo un nostro default per il C / S:
+• Sempre Molti a 1
+• Sincrono, si prevede risposta dal servitore al cliente
+• Bloccante, il cliente aspetta la risposta dal servitore
+• Asimmetrico, il cliente conosce il servitore per inviare la invocazione, mentre il servitore non conosce a priori i clienti possibili
+• Dinamico, il legame (binding) tra cliente e servitore è dinamico, ossia può cambiare il servitore che risponde alle richieste tra diverse invocazioni
+
+Il progetto del server è più complesso rispetto al progetto del cliente
+- Il Server deve essere sempre presente (demone)
+- Il Server deve mantenere una coda delle richieste da servire da cui prelevare le operazioni da eseguire
+- Il Server o svolge una operazione alla volta o è capace di portare avanti molte operazioni insieme
+	- Server sequenziale o Server concorrente (parallelo o meno)
+- Server senza stato o Server con stato della interazione
+	
+---VARIAZIONI ---
+il client tipicamente lavora in modo sincrono bloccante. Se c'è risposta bene a posto ma se non c'è?
+	-Punto importante: se la risposta non arriva (entro un certo tempo), possiamo inferire che il server sia down? NO
+	Un server in crash è molto simile a uno congestionato, che ha troppe richieste pendenti da server e non è più capace di onorare le
+	richieste in tempi ‘ragionevoli.
+
+Se non arriva risposta, non si aspetta per sempre 
+	-> Decisione locale di timeout che scatena la eccezione locale e poi
+		- Richiesta ad un altro server
+		- Ripetizione delle richiesta
+		- Rinuncia della richiesta
+La iniziativa è del Client ed è lui che decide come fare.
+- Il cliente aspetta fino ad una risposta (se ne ha bisogno)
+- Il cliente chiede ripetutamente lo stesso servizio ma non attende per ogni richiesta, fino ad una risposta che si possa fornire in tempi accettabili (polling di ripetizioni)
+
+Per questi tipi di interazione C / S oltre il default sincrono abbiamo anche
+Modelli verso la asincronia (senza risposta) o sincroni a risposta differita (sincroni non bloccanti)!
+
+-MODELLO DI INTERAZIONE PULL -> normale cliente / servitore
+Si semplifica il progetto server e il cliente decide quando ripetere la richiesta, quanto spesso e quante volte. Il cliente ha sempre la iniziativa
+
+-MODELLO DI INTERAZIONE PUSH -> un modello opposto per la consegna del risultato
+Il cliente fa la richiesta, una volta sola, si sblocca e può fare altro.
+Il server arriva a fare il servizio e ha la responsabilità di consegna del risultato al cliente.
+Il modello push fa diventare il server cliente di ogni suo cliente, scaricando il cliente (senza cicli attivi di richieste), ma caricando di ulteriori compiti il servitore stesso
+
+NB: Se a fronte di un timeout il client ripete la richiestsa invece di arrendersi allora il server ha bisogno di riconoscere richieste ripetute in modo da gestire solo la prima
+	->Il client deve identificare in modo unico le richieste	
+
+------------------------------------- MODELLO A SCAMBIO DI MESSAGGI ---------------------------------------
+Il modello C/S implica un accoppiamento molto stretto tra le entità interagenti che devono essere presenti INSIEME per interagire.
+Pensiamo a due parti di un’organizzazione che debbano scambiare informazioni di notte(vedi banche che assumono la non compresenza)
+L'accoppiamento forte allora potrebbe essere troppo vincolante
+
+Lo scambio di messaggi ad esempio si presenta come non accoppiato!
+Es: Quando inviamo una e-mail abbiamo due possibilità
+- non c’è risposta(asincrono)
+- non si attende in alcun modo, ma si va avanti per poi recuperare la risposta(sincrono non bloccante)
+
+--- I DUE MODELLI A CONFRONTO ---
+-Scambio di messaggi Sender/Receiver
+	Modelli a scarso (anche minimo) accoppiamento (loose coupling)
+	Non impone la compresenza delle entità interagenti
+	Molto flessibile, primitivo, ed espressivo, ma non facile da usare
+	Molto low level (e adatto per ogni possibile uso del sistema)
+	Si permettono molti diversi usi eterogenei di sistema, anche supporto ad ogni possibile tipo di comunicazione, anche ogni forma di MX e BX
+
+-Client / Server
+	Modello a accoppiamento forte (strong coupling) che implica compresenza di entrambe le entità interagenti
+	Meccanismo molto adatto per comunicazioni di alto livello e semplici
+	Molto high level (molto adatto per uso applicativo e utente) ma non così flessibili per situazioni diverse e specifiche
+	Impossibilità di Multicast (MX) and Broadcast (BX) per costro troppo alto
+
+-------------------------------------------------------------
+Sia TCP che udp siedono su ip! Di conseguenza i segmenti possono seguire strade diverse, e quindi arrivano disordinati. Non c'è una vera connessione.
+
+-------------------------- SERVITORI STATEFUL/LESS --------------------------
+IN BREVE( slide 40 per dettagli )
+I modelli stateless portano a un progetto del cliente più complesso, ma semplificano il progetto del server che non deve mantenere stato
+La scelta tra server stateless o stateful deriva dall’applicazione e dai protocolli di interazione
+Un’interazione stateless è sensata e possibile SOLO se il protocollo è progettato per operazioni idempotenti
+
+Lo stato in un server è simile all'io pointer di un file. L'io pointer è una forma di stato. 
+Senza i/o pointer dovremmo definire dove iniziare e finire la lettura ogni volta -> interazione stateless
+
+Nel distribuito la scelta più ragionevole è quella di servitore senza stato, dato che quest'ultimo è troppo costoso mantenerlo quando si hanno n clienti.
+Quando si ha stato sul servitore si perde l'idempotenza, per definizione il servitore si ricorda delle interazioni precedenti grazie al suo stato e quindi
+un operazione ripetuta non è idempotente.
+

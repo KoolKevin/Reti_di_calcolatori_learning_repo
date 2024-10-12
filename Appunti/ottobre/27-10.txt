@@ -1,0 +1,73 @@
+------------------ SOCKET A STREAM IN C -------------------
+
+la socket del server "sta in ascolto", non è però una attesa a livello applicativo ma a livello di driver.
+
+perchè le primitive della fase asimmetrica di connessione sono 3 e non 2? -> per permettere al servitore di essere disaccoppiato dal cliente.
+
+le primitive read()/write() sono molto importanti perchè permettono di fare le cose che facevamo in locale anche nel distribuito -> posso riutilizzare il codice.
+
+-------------- CONNECT() ---------------
+La connect() non aspetta che il servitore attui la connessione -> si connette con LA DRIVER del servitore -> si attivano le due driver.
+in questo modo il cliente non deve aspettare che il servitore accetti la connessione a livello applicativo( accept() ) e può andare avanti.
+Questo disaccopiamento è la chiave dell'efficienza del protocollo tcp con le socket.
+Detta in un altro modo è la connect che fa il three way handshake con la driver remota.
+
+la connect(), rispetto alla bind(), è una primitiva costosa dato che può fare ritrasmissione e dato che non lavora solo a livello locale.
+La primitiva connect() è la controparte per il coordinamento iniziale del cliente che ha l’iniziativa e si attiva per preparare le risorse
+	• La primitiva può avere tempi di completamento anche elevati perché esegue anche ritrasmissioni
+	• La primitiva è una reale primitiva di comunicazione remota
+	
+Al completamento, in caso di errore (risultato <0), la motivazione del problema nel valore nella variabile errno (file /usr/include/errno.h)
+	• ECOMM - Communication error on send
+	• ECONNABORTED - Connection aborted (non ritentare)
+	• ECONNREFUSED - impossibilità di connettersi (non ritentare)
+	• ETIMEDOUT - tentativo di connessione in time-out: la coda d'ascolto del server è piena o non creata. Non si è depositata la richiesta
+In caso di successo, il client considera immediatamente la connessione stabilita (anche se il server non ha accettato il tutto) e comincia a mandare roba passandola alla sua driver.
+
+La primitiva connect() è anche capace di invocare la bind e il sistema assegna al cliente la prima porta libera facendo una bind.
+
+-------------- LISTEN() -----------------
+la listen() crea lo coda delle richieste di connessione per la accept(). è una primitiva passante dato che è locale -> crea la coda nella drive locale.
+
+La primitiva listen() è una primitiva locale, passante (istantanea) e senza attesa; fallisce solo se attuata su socket non adatte (no socket(), no bind(), …)
+
+Al termine della listen, la coda è disponibile per accettare richieste di connessione (connect()) nel numero specificato
+	• L’accodamento della richiesta fa terminare con successo la connect()
+	• Le richieste oltre la coda sono semplicemente scartate, la connect() fallisce dalla parte cliente; nessuna indicazione di nessun tipo al server
+
+quando faccio delle fork i figli ereditano i fd(e quindi le scoket aperte) del padre. Di conseguenza ogni figlio, come prima operazione, chiude la socket di listen ereditata 
+e il padre chiude la socket generata dalla accept(). In questo modo la socket vengono effettivamente chiuse quando si fà una close().
+
+-------------------- ACCEPT() -----------------------------
+
+La accept()attua la reale connessione dalla parte server e crea la nuova socket connessa.
+
+La nuova socket insiste sulla stessa porta della socket di listen()e si differenzia da questa per: la funzione (non di listen() e accept()) e per il collegamento
+ad un cliente specifico.
+ 
+accept()e connect()realizzano una sorta di rendez-vous lasco. Se le primitive fossero state 2 invece che 3 avremmo avuto rendez-vous stretto
+
+-------------------------READ()/WRITE()-----------------------------------
+
+IMPORTANTE: La scrittura non è sincrona con la lettura a livello applicativo! La connessione garantisce un disaccoppiamento.
+Posso fare molte scritture (di un byte) e consumare tutti i byte con una unica lettura e viceversa.
+
+read e write sono azioni locali! sincrone e bloccanti ma solo a livello locale! quando faccio un scrittura/send mando i byte alla driver e procedo(bloccante se manca spazio nella driver);
+quando faccio una lettura/receive attendo che ci sia almeno un byte disponibile sulla mia driver( default watermark=1 ).
+
+Il numero delle read è generalmente != dal numero delle write per le socket a stream, posso leggere a blocchi di dimensione diversa rispetto a quella con cui ho scritto. 
+
+ricorda: tutte le volte che vogliamo trasferire dei file usiamo una connessione dato che abbiamo bisogno che i dati arrivino tutti, in ordine e dato che il file potrebbe essere
+molto grande.
+
+ASSUNZIONE: supponiamo sempre che le macchine in C abbiano lo stesso formato dei dati, NON fare hton'x'() per i dati.
+
+---------------------CLOSE()----------------
+
+Il contratto TCP per una close forte prescrive che:
+	• I dati di input vengano buttati via;
+	• I dati di output vengano consegnati al pari che è tenuto ad aspettarli e riceverli fino a che non riceve la fine del file;
+la consegna è garantita dalla driver mittente e potrebbe durare anche molto tempo, ma viene onorata fino alla fine;
+NB: questo potrebbe impedire l’aggancio alla stessa porta da parte un nuovo processo locale (per questo la opzione reuseaddress)
+
+RICORDA: quando si usano le socket datagram, nei datagrammi ci vanno oggetti multipli dato che se spezzassimo non è detto che arrivino in ordine e/o tutti

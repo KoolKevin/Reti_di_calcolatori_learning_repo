@@ -1,0 +1,36 @@
+--------------- SISTEMI DI NOMI PT.2 -------------
+
+i clienti non vedono direttamente il server dns ma un agent intermedio chiamato Name Resolver.
+
+i server dns tra di loro devono coordinarsi quando non hanno la risposta in cache e neanche nella propria tabella.
+
+query ricorsive, permettono di aggiornare le cache di tutti i server dns intermedi!
+
+query iterative, il carico è tutto sul server dns richiedente che manda richieste a server dns che normalmente non riuscirebbe a vedere.
+
+Slide 100 da non imparare!
+
+Per questioni di sicurezza le query inverse a volte vengono bloccate nei server dns.
+
+----------------- x.500 -------------------
+
+è un servizio di nomi molto più ricco di dns e di qualità molto più elevata(garantisce la risposta ed anche in un certo tempo max, in più sicurezza alta).
+
+esiste una modalità di ricerca che consente di trovare i nodi a partire dai valori dei suoi attributi. (query per contenuto degli attributi)
+
+le query per contenuto degli attributi sono molto più costose dato che devono scorrere tutto l'albero.
+
+la qualità e garantita dalla alta replicazione, di conseguenza molte letture poche scritture.
+
+
+x.500 simile a LDAP/MIBS?
+
+cos'è un directory server? un db strutturato con alta qualità?
+
+------------------- socket ---------------------
+
+le socket sono dei contenitori/endpoint della comunicazione contenute nei processi comunicanti.
+
+le primitive send()/receive() NON ESEGUONO ma SONO ESEGUITE dai processi.
+
+primitive passanti: read() oppure fork() sono due esempi di primitive NON passanti dato che devono interagire con il disco/ copiare roba e quindi ci mettono del tempo. 
